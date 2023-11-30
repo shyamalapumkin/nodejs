@@ -1,0 +1,58 @@
+When a user successfully authenticates with AWS Cognito, the authentication token (ID token) that is returned contains various pieces of information, including user attributes and group information. To extract group information from the ID token in Node.js, you can use the jsonwebtoken library to decode the token.
+
+First, make sure to install the jsonwebtoken library:
+
+bash
+Copy code
+npm install jsonwebtoken
+Now, you can modify the authentication function in the previous example to include decoding the ID token and extracting group information:
+
+javascript
+Copy code
+const jwt = require('jsonwebtoken');
+
+// ...
+
+// Example login function with group information extraction
+function signIn(username, password) {
+  const authenticationData = {
+    Username: username,
+    Password: password,
+  };
+
+  const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+
+  const userData = {
+    Username: username,
+    Pool: userPool,
+  };
+
+  const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+  cognitoUser.authenticateUser(authenticationDetails, {
+    onSuccess: function (session) {
+      const idToken = session.getIdToken().getJwtToken();
+      
+      // Decode the ID token
+      const decodedIdToken = jwt.decode(idToken, { complete: true });
+      
+      // Extract group information from the decoded token
+      const groups = decodedIdToken.payload['cognito:groups'];
+      
+      console.log('Authentication successful. Groups:', groups);
+    },
+    onFailure: function (err) {
+      console.error('Authentication failed:', err);
+    },
+  });
+}
+
+// ...
+In this code, the jsonwebtoken library is used to decode the ID token, and then the group information is extracted from the decoded payload. The 'cognito:groups' attribute typically contains an array of groups that the user belongs to.
+
+Remember to handle errors and edge cases appropriately in a production environment. Additionally, make sure to check the AWS Cognito documentation for any updates or changes in the token structure.
+
+
+
+
+
